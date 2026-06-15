@@ -12,14 +12,14 @@ input=$(cat)
 
 dir_raw=$(echo "$input" | $JQ -r '.workspace.current_dir // .cwd // empty')
 folder=$(echo "$dir_raw" | sed 's/.*[/\\]//')
-branch=$(git -C "$dir_raw" --no-optional-locks rev-parse --abbrev-ref HEAD 2>/dev/null)
-model=$(echo "$input" | $JQ -r '.model.display_name // empty')
+model=$(echo "$input"   | $JQ -r '.model.display_name // empty')
 
-pct=$(echo "$input" | $JQ -r '.rate_limits.five_hour.used_percentage // 0')
+pct=$(echo "$input"      | $JQ -r '.rate_limits.five_hour.used_percentage // 0')
 resets_at=$(echo "$input" | $JQ -r '.rate_limits.five_hour.resets_at // 0')
 
-# Tiempo hasta reset
-reset_info=""
+# Tiempo restante y hora de reset
+time_left=""
+reset_clock=""
 if [ "$resets_at" -gt 0 ] 2>/dev/null; then
     now=$(date +%s)
     diff=$((resets_at - now))
@@ -27,38 +27,40 @@ if [ "$resets_at" -gt 0 ] 2>/dev/null; then
         hrs=$(( diff / 3600 ))
         mins=$(( (diff % 3600) / 60 ))
         if [ $hrs -gt 0 ]; then
-            reset_info="↺ ${hrs}h${mins}m"
+            time_left="${hrs}h${mins}m"
         else
-            reset_info="↺ ${mins}m"
+            time_left="${mins}m"
         fi
     fi
+    reset_clock=$(date -d "@$resets_at" "+%H:%M" 2>/dev/null)
 fi
 
-# Color del porcentaje segun uso
-pct_colored=""
+# Barra de progreso ▰▱ (ancho 12)
+bar_width=12
+bar=""
 if [ "$pct" -ge 0 ] 2>/dev/null; then
-    if   [ $pct -lt 60 ]; then col=""
-    elif [ $pct -lt 80 ]; then col=$(printf "\033[38;5;221m")
-    else                       col=$(printf "\033[38;5;203m")
-    fi
-    rst=$(printf "\033[0m")
-    dim=$(printf "\033[2m")
-
-    pct_str="${col}${pct}%${rst}"
-    [ -n "$reset_info" ] && pct_str="${pct_str}  ${dim}${reset_info}${rst}"
-    pct_colored="$pct_str"
+    filled=$((pct * bar_width / 100))
+    empty=$((bar_width - filled))
+    i=0; while [ $i -lt $filled ]; do bar="${bar}▰"; i=$((i+1)); done
+    i=0; while [ $i -lt $empty  ]; do bar="${bar}▱"; i=$((i+1)); done
 fi
 
-# Separador
-SEP=$(printf "  \033[2m│\033[0m  ")
-DIM=$(printf "\033[2m")
-RST=$(printf "\033[0m")
+# Color segun uso (solo barra y porcentaje)
+if   [ "$pct" -lt 60 ] 2>/dev/null; then col=$(printf "\033[38;5;114m")
+elif [ "$pct" -lt 80 ] 2>/dev/null; then col=$(printf "\033[38;5;221m")
+else                                       col=$(printf "\033[38;5;203m")
+fi
+rst=$(printf "\033[0m")
+dim=$(printf "\033[2m")
+SEP=$(printf "  ${dim}·${rst}  ")
 
-# Ensamblar
+# Ensamblar segmentos
 line=""
-[ -n "$folder"      ] && line="${DIM}${folder}${RST}"
-[ -n "$branch"      ] && line="${line}${SEP}${branch}"
+[ -n "$folder"      ] && line="${dim}${folder}${rst}"
 [ -n "$model"       ] && line="${line}${SEP}${model}"
-[ -n "$pct_colored" ] && line="${line}${SEP}${pct_colored}"
+[ -n "$bar"         ] && line="${line}${SEP}${col}${bar}${rst}"
+[ -n "$pct"         ] && line="${line}${SEP}${col}${pct}%${rst}"
+[ -n "$time_left"   ] && line="${line}${SEP}${dim}↺ ${time_left}${rst}"
+[ -n "$reset_clock" ] && line="${line}${SEP}${dim}${reset_clock}${rst}"
 
 printf "%s" "$line"
