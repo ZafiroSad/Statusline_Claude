@@ -11,7 +11,7 @@ fi
 input=$(cat)
 
 dir_raw=$(echo "$input" | $JQ -r '.workspace.current_dir // .cwd // empty')
-folder=$(echo "$dir_raw" | sed 's/.*[/\\]//')
+repo=$(git -C "$dir_raw" --no-optional-locks rev-parse --show-toplevel 2>/dev/null | sed 's/.*[/\\]//')
 model=$(echo "$input"   | $JQ -r '.model.display_name // empty')
 
 pct=$(echo "$input"      | $JQ -r '.rate_limits.five_hour.used_percentage // 0')
@@ -56,9 +56,21 @@ rst=$(printf "\033[0m")
 dim=$(printf "\033[2m")
 SEP=$(printf "  ${dim}·${rst}  ")
 
+# Etiqueta contextual: repo si existe, mensaje segun uso si no
+if [ -n "$repo" ]; then
+    label="$repo"
+elif [ "$pct" -lt 40 ] 2>/dev/null; then
+    label="Aguardando órdenes, Señor"
+elif [ "$pct" -lt 60 ] 2>/dev/null; then
+    label="Sesión en curso, Señor"
+elif [ "$pct" -lt 80 ] 2>/dev/null; then
+    label="Trabajando a buen ritmo"
+else
+    label="Límite próximo, Señor"
+fi
+
 # Ensamblar segmentos
-line=""
-[ -n "$folder"      ] && line="${dim}${folder}${rst}"
+line="${dim}${label}${rst}"
 [ -n "$model"       ] && line="${line}${SEP}${model}"
 [ -n "$bar"         ] && line="${line}${SEP}${col}${bar}${rst}"
 warn=""
