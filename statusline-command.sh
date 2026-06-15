@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Detectar jq: primero en PATH, luego en WinGet
+# Detectar jq
 if command -v jq >/dev/null 2>&1; then
     JQ="jq"
 else
@@ -34,36 +34,31 @@ if [ "$resets_at" -gt 0 ] 2>/dev/null; then
     fi
 fi
 
-# Barra de progreso — estilo ▰▱, ancho 12
-bar_width=12
-progress_part=""
+# Color del porcentaje segun uso
+pct_colored=""
 if [ "$pct" -ge 0 ] 2>/dev/null; then
-    filled=$((pct * bar_width / 100))
-    empty=$((bar_width - filled))
-
-    bar=""
-    i=0; while [ $i -lt $filled ]; do bar="${bar}▰"; i=$((i+1)); done
-    i=0; while [ $i -lt $empty  ]; do bar="${bar}▱"; i=$((i+1)); done
-
-    if   [ $pct -lt 60 ]; then col="38;5;114"   # verde suave
-    elif [ $pct -lt 80 ]; then col="38;5;221"   # amarillo cálido
-    else                       col="38;5;203"   # coral
+    if   [ $pct -lt 60 ]; then col=""
+    elif [ $pct -lt 80 ]; then col=$(printf "\033[38;5;221m")
+    else                       col=$(printf "\033[38;5;203m")
     fi
+    rst=$(printf "\033[0m")
+    dim=$(printf "\033[2m")
 
-    pct_label="${pct}%"
-    [ -n "$reset_info" ] && pct_label="${pct_label}  ${reset_info}"
-
-    progress_part=$(printf "\033[${col}m%s\033[0m  \033[2m%s\033[0m" "$bar" "$pct_label")
+    pct_str="${col}${pct}%${rst}"
+    [ -n "$reset_info" ] && pct_str="${pct_str}  ${dim}${reset_info}${rst}"
+    pct_colored="$pct_str"
 fi
 
-# Separador elegante
-SEP=$(printf "  \033[2m·\033[0m  ")
+# Separador
+SEP=$(printf "  \033[2m│\033[0m  ")
+DIM=$(printf "\033[2m")
+RST=$(printf "\033[0m")
 
-# Ensamblar línea
+# Ensamblar
 line=""
-[ -n "$folder" ] && line=$(printf "\033[2m%s\033[0m" "$folder")
-[ -n "$branch" ] && line="${line}${SEP}$(printf "⎇  %s" "$branch")"
-[ -n "$model"  ] && line="${line}${SEP}$(printf "◆  %s" "$model")"
-[ -n "$progress_part" ] && line="${line}    ${progress_part}"
+[ -n "$folder"      ] && line="${DIM}${folder}${RST}"
+[ -n "$branch"      ] && line="${line}${SEP}${branch}"
+[ -n "$model"       ] && line="${line}${SEP}${model}"
+[ -n "$pct_colored" ] && line="${line}${SEP}${pct_colored}"
 
 printf "%s" "$line"
