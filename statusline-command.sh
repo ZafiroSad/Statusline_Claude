@@ -61,7 +61,9 @@ line=""
 [ -n "$folder"      ] && line="${dim}${folder}${rst}"
 [ -n "$model"       ] && line="${line}${SEP}${model}"
 [ -n "$bar"         ] && line="${line}${SEP}${col}${bar}${rst}"
-[ -n "$pct"         ] && line="${line}${SEP}${col}${pct}%${rst}"
+warn=""
+[ "$pct" -ge 80 ] 2>/dev/null && warn=$(printf "  \033[38;5;203m⚠\033[0m")
+[ -n "$pct"         ] && line="${line}${SEP}${col}${pct}%${rst}${warn}"
 [ -n "$time_left"   ] && line="${line}${SEP}${dim}↺ ${time_left}${rst}"
 [ -n "$reset_clock" ] && line="${line}${SEP}${dim}↺ ${reset_clock}${rst}"
 
