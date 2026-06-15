@@ -43,7 +43,7 @@ if [ "$pct" -ge 0 ] 2>/dev/null; then
     empty=$((bar_width - filled))
     i=0; while [ $i -lt $filled ]; do bar="${bar}▬"; i=$((i+1)); done
     i=0; while [ $i -lt $empty  ]; do bar="${bar} "; i=$((i+1)); done
-    bar="▏${bar}▕"
+    bar="[${bar}]"
 fi
 
 # Color segun uso (solo barra y porcentaje)
