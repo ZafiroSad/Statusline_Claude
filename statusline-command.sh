@@ -41,8 +41,10 @@ bar=""
 if [ "$pct" -ge 0 ] 2>/dev/null; then
     filled=$((pct * bar_width / 100))
     empty=$((bar_width - filled))
-    i=0; while [ $i -lt $filled ]; do bar="${bar}▬"; i=$((i+1)); done
-    i=0; while [ $i -lt $empty  ]; do bar="${bar}─"; i=$((i+1)); done
+    fill=""; i=0; while [ $i -lt $filled ]; do fill="${fill}▬"; i=$((i+1)); done
+    trail=""; i=0; while [ $i -lt $empty  ]; do trail="${trail}─"; i=$((i+1)); done
+    gray=$(printf "\033[38;5;240m")
+    bar=$(printf "%s%s${gray}%s\033[0m" "" "$fill" "$trail")
 fi
 
 # Color segun uso (solo barra y porcentaje)
