@@ -60,13 +60,13 @@ SEP=$(printf "  ${dim}·${rst}  ")
 if [ -n "$repo" ]; then
     label="$repo"
 elif [ "$pct" -lt 40 ] 2>/dev/null; then
-    label="Aguardando órdenes, Señor"
+    label="Aguardando órdenes"
 elif [ "$pct" -lt 60 ] 2>/dev/null; then
-    label="Sesión en curso, Señor"
+    label="Sesión en curso"
 elif [ "$pct" -lt 80 ] 2>/dev/null; then
     label="Trabajando a buen ritmo"
 else
-    label="Límite próximo, Señor"
+    label="Límite próximo"
 fi
 
 # Ensamblar segmentos
