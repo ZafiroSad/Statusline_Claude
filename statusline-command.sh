@@ -32,7 +32,7 @@ if [ "$resets_at" -gt 0 ] 2>/dev/null; then
             time_left="${mins}m"
         fi
     fi
-    reset_clock=$(date -d "@$resets_at" "+%H:%M" 2>/dev/null)
+    reset_clock=$(date -d "@$resets_at" "+%I:%M %p" 2>/dev/null)
 fi
 
 # Barra de progreso ▰▱ (ancho 12)
@@ -61,6 +61,6 @@ line=""
 [ -n "$bar"         ] && line="${line}${SEP}${col}${bar}${rst}"
 [ -n "$pct"         ] && line="${line}${SEP}${col}${pct}%${rst}"
 [ -n "$time_left"   ] && line="${line}${SEP}${dim}↺ ${time_left}${rst}"
-[ -n "$reset_clock" ] && line="${line}${SEP}${dim}${reset_clock}${rst}"
+[ -n "$reset_clock" ] && line="${line}${SEP}${dim}↺ ${reset_clock}${rst}"
 
 printf "%s" "$line"
