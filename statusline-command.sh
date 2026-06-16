@@ -72,17 +72,11 @@ rst=$(printf "\033[0m")
 dim=$(printf "\033[2m")
 SEP=$(printf "  ${dim}·${rst}  ")
 
-# Etiqueta contextual: repo si existe, mensaje segun uso si no
+# Ubicacion: nombre del repo si hay repo, si no el nombre de la carpeta actual
 if [ -n "$repo" ]; then
     label="$repo"
-elif [ "$pct" -lt 40 ] 2>/dev/null; then
-    label="Aguardando órdenes"
-elif [ "$pct" -lt 60 ] 2>/dev/null; then
-    label="Sesión en curso"
-elif [ "$pct" -lt 80 ] 2>/dev/null; then
-    label="Trabajando a buen ritmo"
 else
-    label="Límite próximo"
+    label=$(echo "$dir_raw" | sed 's/[/\\]*$//; s/.*[/\\]//')
 fi
 
 # Ensamblar segmentos
@@ -91,7 +85,7 @@ line="${dim}${label}${rst}"
 [ -n "$bar"         ] && line="${line}${SEP}${col}${bar}${rst}"
 warn=""
 [ "$pct" -ge 80 ] 2>/dev/null && warn=$(printf "  \033[38;5;203m▲\033[0m")
-[ -n "$pct"         ] && line="${line}${SEP}${col}${pct}%${rst}${warn}"
+[ -n "$pct"         ] && line="${line} ${col}${pct}%${rst}${warn}"
 [ -n "$time_left"   ] && line="${line}${SEP}${dim}↺ ${time_left}${rst}"
 [ -n "$reset_clock" ] && line="${line}${SEP}${dim}↺ ${reset_clock}${rst}"
 
