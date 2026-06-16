@@ -14,8 +14,24 @@ dir_raw=$(echo "$input" | $JQ -r '.workspace.current_dir // .cwd // empty')
 repo=$(git -C "$dir_raw" --no-optional-locks rev-parse --show-toplevel 2>/dev/null | sed 's/.*[/\\]//')
 model=$(echo "$input"   | $JQ -r '.model.display_name // empty')
 
-pct=$(echo "$input"      | $JQ -r '.rate_limits.five_hour.used_percentage // 0')
+pct=$(echo "$input"      | $JQ -r '(.rate_limits.five_hour.used_percentage // 0) | round | floor | tostring')
 resets_at=$(echo "$input" | $JQ -r '.rate_limits.five_hour.resets_at // 0')
+
+# Sesion semanal (7 dias)
+wpct=$(echo "$input"       | $JQ -r '(.rate_limits.seven_day.used_percentage // 0) | round | floor | tostring')
+wresets_at=$(echo "$input" | $JQ -r '.rate_limits.seven_day.resets_at // 0')
+
+# Fecha y hora de reinicio semanal
+wreset_when=""
+if [ "$wresets_at" -gt 0 ] 2>/dev/null; then
+    wreset_when=$(date -d "@$wresets_at" "+%d/%m %I:%M %p" 2>/dev/null)
+fi
+
+# Color del porcentaje semanal segun uso
+if   [ "$wpct" -lt 60 ] 2>/dev/null; then wcol=$(printf "\033[38;5;114m")
+elif [ "$wpct" -lt 80 ] 2>/dev/null; then wcol=$(printf "\033[38;5;221m")
+else                                        wcol=$(printf "\033[38;5;203m")
+fi
 
 # Tiempo restante y hora de reset
 time_left=""
@@ -78,5 +94,11 @@ warn=""
 [ -n "$pct"         ] && line="${line}${SEP}${col}${pct}%${rst}${warn}"
 [ -n "$time_left"   ] && line="${line}${SEP}${dim}↺ ${time_left}${rst}"
 [ -n "$reset_clock" ] && line="${line}${SEP}${dim}↺ ${reset_clock}${rst}"
+
+# Sesion semanal al final: todo junto, mismo color, sin separador interno
+wseg=""
+[ -n "$wpct"        ] && wseg="Semana ${wpct}%"
+[ -n "$wreset_when" ] && wseg="${wseg} ↺ ${wreset_when}"
+[ -n "$wseg"        ] && line="${line}${SEP}${wcol}${wseg}${rst}"
 
 printf "%s" "$line"
