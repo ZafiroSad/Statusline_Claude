@@ -5,10 +5,10 @@
 ![Claude Code](https://img.shields.io/badge/Claude_Code-compatible-orange?logo=anthropic)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-Barra de estado minimalista en tiempo real para **Claude Code**. Muestra contexto de sesión, uso del rate limit de 5 horas y tiempo de reset — todo en una línea limpia con colores ANSI.
+Barra de estado minimalista en tiempo real para **Claude Code**. Muestra contexto de sesión, uso del rate limit de 5 horas, uso de la sesión semanal y sus tiempos de reset — todo en una línea limpia con colores ANSI.
 
 ```
-STICK-PROJECTS  ·  Opus 4.8  ·  ▬▬▬▬▬▬──────  ·  50%  ·  ↺ 2h30m  ·  ↺ 04:15 PM
+STICK-PROJECTS  ·  Opus 4.8  ·  ▬▬▬▬▬▬──────  ·  50%  ·  ↺ 2h30m  ·  ↺ 04:15 PM  ·  Semana 23% ↺ 20/06 02:15 PM
 ```
 
 ---
@@ -19,10 +19,11 @@ STICK-PROJECTS  ·  Opus 4.8  ·  ▬▬▬▬▬▬──────  ·  50% 
 |---|---|
 | `STICK-PROJECTS` | Nombre del repositorio git activo. Si no hay repo, muestra un mensaje contextual según el nivel de uso |
 | `Opus 4.8` | Modelo activo en la sesión |
-| `▬▬▬▬▬▬──────` | Barra de uso del rate limit. `▬` relleno con color, `─` en gris |
-| `50%` | Porcentaje exacto consumido |
-| `↺ 2h30m` | Tiempo restante hasta el reset |
-| `↺ 04:15 PM` | Hora exacta en la que se recarga el límite |
+| `▬▬▬▬▬▬──────` | Barra de uso del rate limit de 5 horas. `▬` relleno con color, `─` en gris |
+| `50%` | Porcentaje exacto consumido en la ventana de 5 horas |
+| `↺ 2h30m` | Tiempo restante hasta el reset de la ventana de 5 horas |
+| `↺ 04:15 PM` | Hora exacta en la que se recarga el límite de 5 horas |
+| `Semana 23% ↺ 20/06 02:15 PM` | Uso de la sesión semanal (ventana de 7 días) y su fecha/hora de reinicio. Bloque en un único color según el uso, sin separadores internos |
 
 ### Mensajes contextuales (sin repo activo)
 
@@ -33,13 +34,15 @@ STICK-PROJECTS  ·  Opus 4.8  ·  ▬▬▬▬▬▬──────  ·  50% 
 | 60 – 79 % | `Trabajando a buen ritmo` |
 | 80 – 100 % | `Límite próximo` |
 
-### Colores de la barra
+### Colores por nivel de uso
+
+Tanto la barra de 5 horas como el bloque semanal cambian de color según el porcentaje consumido:
 
 | Porcentaje | Color | Significado |
 |---|---|---|
 | 0 – 59 % | Verde suave | Sin problema |
 | 60 – 79 % | Amarillo cálido | Uso moderado |
-| 80 – 100 % | Coral + `▲` | Cerca del límite |
+| 80 – 100 % | Coral (la barra de 5 h añade `▲`) | Cerca del límite |
 
 ---
 
@@ -101,8 +104,10 @@ Los campos utilizados del JSON:
 
 | Campo JSON | Uso |
 |---|---|
-| `rate_limits.five_hour.used_percentage` | Porcentaje de uso y color de barra |
-| `rate_limits.five_hour.resets_at` | Cálculo de tiempo restante y hora de reset |
+| `rate_limits.five_hour.used_percentage` | Porcentaje de uso y color de la barra de 5 horas |
+| `rate_limits.five_hour.resets_at` | Tiempo restante y hora de reset de la ventana de 5 horas |
+| `rate_limits.seven_day.used_percentage` | Porcentaje y color del bloque de la sesión semanal |
+| `rate_limits.seven_day.resets_at` | Fecha y hora de reinicio de la sesión semanal |
 | `model.display_name` | Nombre del modelo activo |
 | `workspace.current_dir` | Ruta para detectar el repo git activo |
 
